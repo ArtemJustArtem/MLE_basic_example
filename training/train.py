@@ -54,6 +54,9 @@ parser.add_argument("--batch_size", type=int,
 parser.add_argument("--epochs", type=int,
                     help="Number of epochs used during training",
                     default=100)
+parser.add_argument("--verbose_interval", type=int,
+                    help="Interval between each epoch log (where -1 means no epoch log at all)",
+                    default=50)
 args = parser.parse_args()
 
 def data_pipeline(X_train_path, y_train_path, test_size, random_state):
@@ -98,10 +101,11 @@ def evaluate_model(model, dataset):
         predictions = torch.tensor(np.argmax(model(X).cpu().numpy(), axis=1)).type(torch.int)
         return multiclass_accuracy(predictions, y).item()
     
-def train_model(model, train_dataset, batch_size, epochs):
+def train_model(model, train_dataset, batch_size, epochs, verbose_interval):
     train_dataloader = DataLoader(dataset=train_dataset, batch_size=batch_size)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    start_time = time.time()
     for epoch in range(epochs):
         model.train()
         for X, y in train_dataloader:
@@ -110,17 +114,24 @@ def train_model(model, train_dataset, batch_size, epochs):
             loss = criterion(output, y.to(model.device))
             loss.backward()
             optimizer.step()
+        if verbose_interval != -1 and epoch % verbose_interval == 0:
+                logging.info(f"Epoch #{epoch + 1} -> loss: {loss.item()}")
+    end_time = time.time()
+    logging.info(f"Model finished training after {round(end_time - start_time, 2)} sec. Final loss: {loss.item()}")
     return model
 
 def save_model(model):
     if not os.path.exists(MODEL_DIR):
         os.makedirs(MODEL_DIR)
-    path = os.path.join(MODEL_DIR, datetime.now().strftime(conf['general']['datetime_format']) + '.pickle')
+    name = datetime.now().strftime(conf['general']['datetime_format']) + '.pickle'
+    path = os.path.join(MODEL_DIR, name)
     with open(path, 'wb') as f:
         pickle.dump(model, f)
+        logging.info(f"Model saved as '{name}'")
 
 if __name__ == "__main__":
     configure_logging()
+    logging.info("Starting the script.")
     np.random.seed(conf['general']['random_state'])
     torch.random.manual_seed(conf['general']['random_state'])
     if torch.cuda.is_available():
@@ -128,7 +139,15 @@ if __name__ == "__main__":
         torch.backends.cudnn.benchmark = False
     train_dataset, test_dataset = data_pipeline(X_TRAIN_PATH, Y_TRAIN_PATH, conf['train']['test_size'], conf['general']['random_state'])
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    logging.info(f"Using {device} to train model")
     model = NNModel(args.hidden_neurons, device)
-    trained_model = train_model(model, train_dataset, args.batch_size, args.epochs)
+    logging.info("Starting training of the model. "
+                 f"Parameters used: Number of neurons in hidden layers: [{args.hidden_neurons}]; "
+                 f"Batch size: {args.batch_size}; "
+                 f"Number of epochs: {args.epochs}")
+    trained_model = train_model(model, train_dataset, args.batch_size, args.epochs, args.verbose_interval)
+    logging.info(f"Train accuracy: {evaluate_model(trained_model, train_dataset)}")
+    logging.info(f"Test accuracy: {evaluate_model(trained_model, test_dataset)}")
     save_model(trained_model)
+    logging.info("Script successfully finished.")
     
