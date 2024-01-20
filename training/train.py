@@ -65,8 +65,26 @@ def data_pipeline(X_train_path, y_train_path, test_size, random_state):
     test_dataset = TensorDataset(X_test_tensor, y_test_tensor)
     return train_dataset, test_dataset
 
+class NNModel(nn.Module):
+    def __init__(self, hidden_neurons):
+        super(NNModel, self).__init__()
+        neurons = hidden_neurons.split(',')
+        self.hidden_layers = []
+        in_features = 4
+        for n in neurons:
+            out_features = int(n)
+            self.hidden_layers.append(nn.Linear(in_features=in_features, out_features=out_features, bias=True))
+            in_features = out_features
+        self.final_layer = nn.Linear(in_features=in_features, out_features=3, bias=True)
+        self.relu = nn.ReLU()
+        self.softmax = nn.Softmax()
+
+    def forward(self, x):
+        for layer in self.hidden_layers:
+            x = self.relu(layer(x))
+        return self.softmax(self.final_layer(x))
 
 
 if __name__ == "__main__":
     configure_logging()
-    _, _ = data_pipeline(X_TRAIN_PATH, Y_TRAIN_PATH, conf['train']['test_size'], conf['general']['random_state'])
+    _ = NNModel("8,4,2")
