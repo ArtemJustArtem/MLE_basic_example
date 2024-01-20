@@ -66,13 +66,17 @@ def save_predictions(results, name):
     file_path = os.path.join(RESULTS_DIR, name + '.csv')
     results = pd.DataFrame(results, columns=['Labels'])
     results.to_csv(file_path, index=False)
+    logging.info(f"Predictions are saved to {name + '.csv'}")
 
 if __name__ == "__main__":
     configure_logging()
     logging.info("Starting the script.")
     data = load_data(INFERENCE_DATA)
+    logging.info("Data successfully loaded")
     model = load_model(args.model)
+    logging.info("Model successfully loaded")
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    logging.info(f"Used {device} to make predictions")
     labels = get_predictions(model, data, device)
     save_predictions(labels, args.model)
     logging.info("Script finished successfully.")
