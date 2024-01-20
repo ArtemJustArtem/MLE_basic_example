@@ -112,6 +112,12 @@ def train_model(model, train_dataset, batch_size, epochs):
             optimizer.step()
     return model
 
+def save_model(model):
+    if not os.path.exists(MODEL_DIR):
+        os.makedirs(MODEL_DIR)
+    path = os.path.join(MODEL_DIR, datetime.now().strftime(conf['general']['datetime_format']) + '.pickle')
+    with open(path, 'wb') as f:
+        pickle.dump(model, f)
 
 if __name__ == "__main__":
     configure_logging()
@@ -124,4 +130,5 @@ if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model = NNModel(args.hidden_neurons, device)
     trained_model = train_model(model, train_dataset, args.batch_size, args.epochs)
+    save_model(trained_model)
     
