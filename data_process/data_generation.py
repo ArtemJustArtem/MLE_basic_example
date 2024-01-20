@@ -50,6 +50,9 @@ class DataGenerator():
         pd.DataFrame(X_train, columns=feature_names).to_csv(X_train_path, index=False)
         pd.DataFrame(y_train, columns=['Target']).to_csv(y_train_path, index=False)
         pd.DataFrame(X_inference, columns=feature_names).to_csv(inference_path, index=False)
+        logging.info(f"Training features loaded in {conf['train']['X_train_name']}")
+        logging.info(f"Training targets loaded in {conf['train']['y_train_name']}")
+        logging.info(f"Inference features loaded in {conf['inference']['inference_name']}")
 
 # Main execution
 if __name__ == "__main__":
