@@ -12,8 +12,9 @@ import sys
 from datetime import datetime
 from typing import List
 
+import numpy as np
 import pandas as pd
-from sklearn.tree import DecisionTreeClassifier
+import torch
 
 # Adds the root directory to system path
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -23,6 +24,7 @@ sys.path.append(os.path.dirname(ROOT_DIR))
 CONF_FILE = "settings.json"
 
 from utils import get_project_dir, configure_logging
+from training.train import NNModel
 
 # Loads configuration settings from JSON
 with open(CONF_FILE, "r") as file:
@@ -43,8 +45,34 @@ args = parser.parse_args()
 def load_data(path):
     return pd.read_csv(path)
 
+def load_model(name):
+    model = os.path.join(MODEL_DIR, name)
+    with open(model, 'rb') as f:
+        return pickle.load(f)
+    
+def get_predictions(model, dataset, device):
+    X = torch.tensor(dataset.values, dtype=torch.float32).to(device)
+    model = model.to(device)
+    model.eval()
+    with torch.no_grad():
+        predictions = np.argmax(model(X).cpu().numpy(), axis=1)
+    label_dict = conf['inference']['target_labels']
+    labels = pd.Series(predictions).apply(lambda item: label_dict[item])
+    return labels
+
+def save_predictions(results, name):
+    if not os.path.exists(RESULTS_DIR):
+        os.makedirs(RESULTS_DIR)
+    file_path = os.path.join(RESULTS_DIR, name + '.csv')
+    results = pd.DataFrame(results, columns=['Labels'])
+    results.to_csv(file_path, index=False)
+
 if __name__ == "__main__":
     configure_logging()
     logging.info("Starting the script.")
-    _ = load_data(INFERENCE_DATA)
+    data = load_data(INFERENCE_DATA)
+    model = load_model(args.model)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    labels = get_predictions(model, data, device)
+    save_predictions(labels, args.model)
     logging.info("Script finished successfully.")

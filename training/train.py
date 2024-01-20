@@ -22,7 +22,6 @@ from torcheval.metrics.functional import multiclass_accuracy
 
 # Comment this lines if you have problems with MLFlow installation
 import mlflow
-mlflow.autolog()
 
 # Adds the root directory to system path
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -57,7 +56,6 @@ parser.add_argument("--epochs", type=int,
 parser.add_argument("--verbose_interval", type=int,
                     help="Interval between each epoch log (where -1 means no epoch log at all)",
                     default=50)
-args = parser.parse_args()
 
 def data_pipeline(X_train_path, y_train_path, test_size, random_state):
     X = pd.read_csv(X_train_path)
@@ -131,6 +129,8 @@ def save_model(model):
 
 if __name__ == "__main__":
     configure_logging()
+    mlflow.autolog()
+    args = parser.parse_args()
     logging.info("Starting the script.")
     np.random.seed(conf['general']['random_state'])
     torch.random.manual_seed(conf['general']['random_state'])
