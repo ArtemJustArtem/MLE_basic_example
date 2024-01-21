@@ -5,6 +5,7 @@ FROM python:3.10
 # Initialize settings_name variable with the default value
 ARG settings_name=settings.json
 ENV CONF_PATH=${settings_name}
+ENV PYTHONUNBUFFERED=0
 
 # Changing the path to the working directory in the container
 WORKDIR /app
