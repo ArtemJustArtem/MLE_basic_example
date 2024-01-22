@@ -58,8 +58,18 @@ parser.add_argument("--verbose_interval", type=int,
                     default=50)
 
 def data_pipeline(X_train_path, y_train_path, test_size, random_state):
-    X = pd.read_csv(X_train_path)
-    y = pd.read_csv(y_train_path)['Target']
+    try:
+        X = pd.read_csv(X_train_path)
+    except FileNotFoundError:
+        logging.exception("File with training features was not found. Try to resolve this issue by running: "
+                          "python3 data_process/data_generation.py")
+        raise
+    try:
+        y = pd.read_csv(y_train_path)['Target']
+    except FileNotFoundError:
+        logging.exception("File with training targets was not found. Try to resolve this issue by running: "
+                          "python3 data_process/data_generation.py")
+        raise
     y_encoded = pd.get_dummies(y)
     X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=test_size, random_state=random_state, stratify=y)
     X_train_tensor = torch.tensor(X_train.values, dtype=torch.float32)
@@ -78,7 +88,14 @@ class NNModel(nn.Module):
         self.hidden_layers = []
         in_features = 4
         for n in neurons:
-            out_features = int(n)
+            try:
+                out_features = int(n)
+            except ValueError:
+                logging.exception(f"An error occured while trying to convert {n} to integer. Change the value of --hidden_layer")
+                raise
+            if out_features <= 0:
+                logging.error(f"Number of neurons must be positive integer but got {out_features}. Change the value of --hidden_layer")
+                raise ValueError(f"Number of neurons must be positive integer but got {out_features}.")
             self.hidden_layers.append(nn.Linear(in_features=in_features, out_features=out_features, bias=True).to(self.device))
             in_features = out_features
         self.final_layer = nn.Linear(in_features=in_features, out_features=3, bias=True).to(self.device)
@@ -100,6 +117,18 @@ def evaluate_model(model, dataset):
         return multiclass_accuracy(predictions, y).item()
     
 def train_model(model, train_dataset, batch_size, epochs, verbose_interval):
+    if batch_size <= 0:
+        logging.error(f"Batch size must be positive integer but got {batch_size}. Change the value of --batch_size")
+        raise ValueError(f"Batch size must be positive integer but got {batch_size}.")
+    if len(train_dataset) < batch_size:
+        logging.error(f"Batch size must be lower than the size of the dataset. Change the value of --batch_size")
+        raise ValueError("Batch size must be lower than the size of the dataset.")
+    if epochs <= 0:
+        logging.error(f"Number of epochs must be positive integer but got {epochs}. Change the value of --epochs")
+        raise ValueError(f"Number of epochs must be positive integer but got {epochs}.")
+    if verbose_interval <= 0 and verbose_interval != -1:
+        logging.error(f"Verbose interval must be positive integer or -1 but got {verbose_interval}. Change the value of --verbose_interval")
+        raise ValueError(f"Verbose interval must be positive integer or -1 but got {verbose_interval}.")
     train_dataloader = DataLoader(dataset=train_dataset, batch_size=batch_size)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
