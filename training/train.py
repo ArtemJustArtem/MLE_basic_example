@@ -96,7 +96,7 @@ class NNModel(nn.Module):
                 logging.exception(f"An error occured while trying to convert {n} to integer. Change the value of --hidden_layer")
                 raise
             if out_features <= 0:
-                logging.exception(f"Number of neurons must be positive integer but got {out_features}. Change the value of --hidden_layer")
+                logging.error(f"Number of neurons must be positive integer but got {out_features}. Change the value of --hidden_layer")
                 raise ValueError(f"Number of neurons must be positive integer but got {out_features}.")
             self.hidden_layers.append(nn.Linear(in_features=in_features, out_features=out_features, bias=True).to(self.device))
             in_features = out_features
@@ -119,6 +119,18 @@ def evaluate_model(model, dataset):
         return multiclass_accuracy(predictions, y).item()
     
 def train_model(model, train_dataset, batch_size, epochs, verbose_interval):
+    if batch_size <= 0:
+        logging.error(f"Batch size must be positive integer but got {batch_size}. Change the value of --batch_size")
+        raise ValueError(f"Batch size must be positive integer but got {batch_size}.")
+    if len(train_dataset) < batch_size:
+        logging.error(f"Batch size must be lower than the size of the dataset. Change the value of --batch_size")
+        raise ValueError("Batch size must be lower than the size of the dataset.")
+    if epochs <= 0:
+        logging.error(f"Number of epochs must be positive integer but got {epochs}. Change the value of --epochs")
+        raise ValueError(f"Number of epochs must be positive integer but got {epochs}.")
+    if verbose_interval <= 0 and verbose_interval != -1:
+        logging.error(f"Verbose interval must be positive integer or -1 but got {verbose_interval}. Change the value of --verbose_interval")
+        raise ValueError(f"Verbose interval must be positive integer or -1 but got {verbose_interval}.")
     train_dataloader = DataLoader(dataset=train_dataset, batch_size=batch_size)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
