@@ -43,6 +43,14 @@ parser.add_argument("model", type=str,
 args = parser.parse_args()
 
 def load_data(path):
+    """
+    Load the inference data
+
+    Args:
+        path: file path for inference features
+
+    Returns: DataFrame of the inference features
+    """
     try:
         return pd.read_csv(path)
     except FileNotFoundError:
@@ -51,6 +59,14 @@ def load_data(path):
         raise
 
 def load_model(name):
+    """
+    Load the model
+
+    Args:
+        name: file path for model
+
+    Returns: trained model
+    """
     model = os.path.join(MODEL_DIR, name)
     if not os.path.exists(model):
         logging.error(f"Modelfile with the name {model} was not found. Check if the name was correct.")
@@ -59,6 +75,15 @@ def load_model(name):
         return pickle.load(f)
     
 def get_predictions(model, dataset, device):
+    """
+    Infer predictions from the model
+
+    model: trained model
+    dataset: DataFrame of the inference features
+    device: device used for calculations
+
+    Returns: Series with predictions
+    """
     X = torch.tensor(dataset.values, dtype=torch.float32).to(device)
     model = model.to(device)
     model.eval()
@@ -69,6 +94,15 @@ def get_predictions(model, dataset, device):
     return labels
 
 def save_predictions(results, name):
+    """
+    Save predictions in the file
+
+    Args:
+        results: Series with predictions
+        name: file path for the saved predictions
+
+    Returns: None
+    """
     if not os.path.exists(RESULTS_DIR):
         os.makedirs(RESULTS_DIR)
     file_path = os.path.join(RESULTS_DIR, name + '.csv')
