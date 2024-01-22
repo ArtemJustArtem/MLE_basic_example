@@ -41,15 +41,22 @@ class DataGenerator():
     def __init__(self):
         self.df = None
 
-    def load_data(self, X_train_path, y_train_path, inference_path, inference_size, random_state):
+    def load_data(self, inference_size, random_state):
         iris = load_iris()
         X = iris['data']
         y = iris['target']
         feature_names = iris['feature_names']
         X_train, X_inference, y_train, _ = train_test_split(X, y, test_size=inference_size, random_state=random_state, stratify=y)
-        pd.DataFrame(X_train, columns=feature_names).to_csv(X_train_path, index=False)
-        pd.DataFrame(y_train, columns=['Target']).to_csv(y_train_path, index=False)
-        pd.DataFrame(X_inference, columns=feature_names).to_csv(inference_path, index=False)
+        X_train_df = pd.DataFrame(X_train, columns=feature_names)
+        X_inference_df = pd.DataFrame(y_train, columns=['Target'])
+        y_train_df = pd.DataFrame(X_inference, columns=feature_names)
+        return X_train_df, X_inference_df, y_train_df
+
+    def save_data(self, X_train_path, y_train_path, inference_path, inference_size, random_state):
+        X_train_df, X_inference_df, y_train_df = self.load_data(inference_size, random_state)
+        X_train_df.to_csv(X_train_path, index=False)
+        X_inference_df.to_csv(y_train_path, index=False)
+        y_train_df.to_csv(inference_path, index=False)
         logging.info(f"Training features loaded in {conf['train']['X_train_name']}")
         logging.info(f"Training targets loaded in {conf['train']['y_train_name']}")
         logging.info(f"Inference features loaded in {conf['inference']['inference_name']}")
@@ -59,5 +66,5 @@ if __name__ == "__main__":
     configure_logging()
     logger.info("Starting loading data...")
     gen = DataGenerator()
-    gen.load_data(X_TRAIN_PATH, Y_TRAIN_PATH, INFERENCE_PATH, conf['inference']['inference_size'], conf['general']['random_state'])
+    gen.save_data(X_TRAIN_PATH, Y_TRAIN_PATH, INFERENCE_PATH, conf['inference']['inference_size'], conf['general']['random_state'])
     logger.info("Data loaded successfully.")
