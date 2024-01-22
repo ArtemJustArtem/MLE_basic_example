@@ -60,8 +60,18 @@ parser.add_argument("--verbose_interval", type=int,
 args = parser.parse_args()
 
 def data_pipeline(X_train_path, y_train_path, test_size, random_state):
-    X = pd.read_csv(X_train_path)
-    y = pd.read_csv(y_train_path)['Target']
+    try:
+        X = pd.read_csv(X_train_path)
+    except FileNotFoundError:
+        logging.exception("File with training features was not found. Try to resolve this issue by running: "
+                          "python3 data_process/data_generation.py")
+        raise
+    try:
+        y = pd.read_csv(y_train_path)['Target']
+    except FileNotFoundError:
+        logging.exception("File with training targets was not found. Try to resolve this issue by running: "
+                          "python3 data_process/data_generation.py")
+        raise
     y_encoded = pd.get_dummies(y)
     X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=test_size, random_state=random_state, stratify=y)
     X_train_tensor = torch.tensor(X_train.values, dtype=torch.float32)
@@ -80,7 +90,14 @@ class NNModel(nn.Module):
         self.hidden_layers = []
         in_features = 4
         for n in neurons:
-            out_features = int(n)
+            try:
+                out_features = int(n)
+            except ValueError:
+                logging.exception(f"An error occured while trying to convert {n} to integer. Change the value of --hidden_layer")
+                raise
+            if out_features <= 0:
+                logging.exception(f"Number of neurons must be positive integer but got {out_features}. Change the value of --hidden_layer")
+                raise ValueError(f"Number of neurons must be positive integer but got {out_features}.")
             self.hidden_layers.append(nn.Linear(in_features=in_features, out_features=out_features, bias=True).to(self.device))
             in_features = out_features
         self.final_layer = nn.Linear(in_features=in_features, out_features=3, bias=True).to(self.device)
