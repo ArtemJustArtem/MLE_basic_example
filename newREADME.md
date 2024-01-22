@@ -120,3 +120,67 @@ You can stop running container using:
 ```
 docker stop <container_id>
 ```
+
+### Inference process
+
+Inference process can be done in two ways: on a local machine or using Docker.
+
+#### Perform inference locally
+
+Run this command to infer data using one of the models:
+
+```
+python3 inference/run.py "<name_of_the_model>"
+```
+
+After running the command, the results will be saved in the `results` folder on a .csv file under a name that will appear on one of log messages that looks like this:
+
+```
+INFO - Predictions are saved to <name_of_the_result_file>
+```
+
+#### Perform inference using Docker
+
+Firstly, you have to build a Docker image, using this command:
+
+```
+docker build -f ./inference/Dockerfile --build-arg settings_name=settings.json -t inference_image .
+```
+
+When the image finishes building, you need to make a container by running this command (preferably in the separate terminal since this comand will immediately open terminal on a running container):
+
+```
+docker run -it inference_image /bin/bash
+```
+
+This will open terminal on a running container and the prompt will contain container id that you need to keep in mind:
+
+```
+root@<container_id>:/app#
+```
+
+You can also find the container id using Docker Desktop.
+
+Using the newly opened container terminal run the same command you would if you were to train it locally:
+
+```
+python3 inference/run.py "<name_of_the_model>"
+```
+
+One of the log messages will show the name of the file:
+
+```
+INFO - Predictions are saved to <name_of_the_result_file>
+```
+
+Use this name to copy the file from container (using local machine's terminal, you will also need to create `results` folder if it's not created yet):
+
+```
+docker cp <container_id>:/app/results/<name_of_the_result_file> ./results
+```
+
+You can stop running container using:
+
+```
+docker stop <container_id>
+```
