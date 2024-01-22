@@ -42,6 +42,9 @@ INFERENCE_PATH = os.path.join(DATA_DIR, conf['inference']['inference_name'])
 # Singleton class for generating XOR data set
 @singleton
 class DataGenerator():
+    """
+    Singleton class for data generation
+    """
     def load_data(self, inference_size, random_state):
         """
         Loading the data from scikit-learn
