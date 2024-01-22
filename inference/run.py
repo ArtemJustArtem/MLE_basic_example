@@ -43,10 +43,18 @@ parser.add_argument("model", type=str,
 args = parser.parse_args()
 
 def load_data(path):
-    return pd.read_csv(path)
+    try:
+        return pd.read_csv(path)
+    except FileNotFoundError:
+        logging.exception("File with inference features was not found. Try to resolve this issue by running: "
+                          "python3 data_process/data_generation.py")
+        raise
 
 def load_model(name):
     model = os.path.join(MODEL_DIR, name)
+    if not os.path.exists(model):
+        logging.error(f"Modelfile with the name {model} was not found. Check if the name was correct.")
+        raise FileNotFoundError(f"Modelfile with the name {model} was not found.")
     with open(model, 'rb') as f:
         return pickle.load(f)
     
