@@ -1,3 +1,7 @@
+"""
+This script is responsible for loading and saving training and inference datasets
+"""
+
 # Importing required libraries
 import pandas as pd
 import logging
@@ -38,10 +42,19 @@ INFERENCE_PATH = os.path.join(DATA_DIR, conf['inference']['inference_name'])
 # Singleton class for generating XOR data set
 @singleton
 class DataGenerator():
-    def __init__(self):
-        self.df = None
-
     def load_data(self, inference_size, random_state):
+        """
+        Loading the data from scikit-learn
+
+        Args:
+            inference_size: part of the dataset to save as inference
+            random_state: random state (used for reproducibility)
+
+        Returns:
+            X_train_df: DataFrame of training features
+            X_inference_df: DataFrame of inference features
+            y_train_df: DataFrame of training targets
+        """
         iris = load_iris()
         X = iris['data']
         y = iris['target']
@@ -53,6 +66,18 @@ class DataGenerator():
         return X_train_df, X_inference_df, y_train_df
 
     def save_data(self, X_train_path, y_train_path, inference_path, inference_size, random_state):
+        """
+        Saving the datasets into .csv files
+
+        Args:
+            X_train_path: file path for training features
+            y_train_path: file path for training targets
+            inference_path: file path for inference features
+            inference_size: part of the dataset to save as inference
+            random_state: random state (used for reproducibility)
+
+        Returns: None
+        """
         X_train_df, X_inference_df, y_train_df = self.load_data(inference_size, random_state)
         X_train_df.to_csv(X_train_path, index=False)
         X_inference_df.to_csv(y_train_path, index=False)
