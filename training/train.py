@@ -58,6 +58,19 @@ parser.add_argument("--verbose_interval", type=int,
                     default=50)
 
 def data_pipeline(X_train_path, y_train_path, test_size, random_state):
+    """
+    Prepare the data to feed to the model
+
+    Args:
+        X_train_path: file path for training features
+        y_train_path: file path for training targets
+        test_size: part of the dataset to use for evaluating accuracy
+        random_state: random state (used for reproducibility)
+
+    Returns:
+        train_dataset: TensorDataset used for training
+        test_dataset: TensorDataset used for evaluating accuracy
+    """
     try:
         X = pd.read_csv(X_train_path)
     except FileNotFoundError:
@@ -81,7 +94,19 @@ def data_pipeline(X_train_path, y_train_path, test_size, random_state):
     return train_dataset, test_dataset
 
 class NNModel(nn.Module):
+    """
+    Architecture of neural network being trained
+    """
     def __init__(self, hidden_neurons, device):
+        """
+        Constructor for NNModel
+
+        Args:
+            hidden_neurons: number of neurons in each hidden layer (integers separated by comma)
+            device: device used for calculations
+
+        Returns: None
+        """
         super(NNModel, self).__init__()
         self.device = device
         neurons = hidden_neurons.split(',')
@@ -103,12 +128,29 @@ class NNModel(nn.Module):
         self.softmax = nn.Softmax(dim=1).to(self.device)
 
     def forward(self, x):
+        """
+        Forward propagation of the network
+
+        Args:
+            x: initial feature values
+
+        Returns: final output
+        """
         x = x.to(self.device)
         for layer in self.hidden_layers:
             x = self.relu(layer(x))
         return self.softmax(self.final_layer(x))
 
 def evaluate_model(model, dataset):
+    """
+    Evaluates model accuracy on the given dataset
+
+    Args:
+        model: model being evaluated
+        dataset: dataset used for evaluation
+
+    Returns: final accuracy
+    """
     model.eval()
     with torch.no_grad():
         X, y = dataset[:][0], dataset[:][1]
@@ -117,6 +159,18 @@ def evaluate_model(model, dataset):
         return multiclass_accuracy(predictions, y).item()
     
 def train_model(model, train_dataset, batch_size, epochs, verbose_interval):
+    """
+    Train the model
+
+    Args:
+        model: model architecture
+        train_dataset: dataset used for training
+        batch_size: size of a batch
+        epochs: number of epochs
+        verbose_interval: Interval of epochs between each log. -1 means no log during epoch training
+
+    Returns: trained model
+    """
     if batch_size <= 0:
         logging.error(f"Batch size must be positive integer but got {batch_size}. Change the value of --batch_size")
         raise ValueError(f"Batch size must be positive integer but got {batch_size}.")
@@ -148,6 +202,14 @@ def train_model(model, train_dataset, batch_size, epochs, verbose_interval):
     return model
 
 def save_model(model):
+    """
+    Save the trained model
+
+    Args:
+        model: trained model
+
+    Returns: None
+    """
     if not os.path.exists(MODEL_DIR):
         os.makedirs(MODEL_DIR)
     name = datetime.now().strftime(conf['general']['datetime_format']) + '.pickle'
