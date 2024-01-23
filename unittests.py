@@ -20,7 +20,7 @@ Y_TRAIN_PATH = os.path.join(DATA_DIR, conf['train']['y_train_name'])
 import data_process.data_generation as data
 import training.train as train
 
-DEFAULT_MODEL = train.NNModel("8,4,2", "cpu")
+DEFAULT_MODEL = train.NNModel("8-4-2", "cpu")
 TRAIN_DATASET, TEST_DATASET = train.data_pipeline(X_TRAIN_PATH, Y_TRAIN_PATH, 
                                                   conf['train']['test_size'], conf['general']['random_state'])
 
@@ -52,11 +52,11 @@ class DataProcessTests(unittest.TestCase):
 class TrainingTest(unittest.TestCase):
     def test_checking_incorrect_hidden_layers_nonint(self):
         with self.assertRaises(ValueError, msg="Non integer value for number of neurons must raise ValueError"):
-            _ = train.NNModel("1,l,1", "cpu")
+            _ = train.NNModel("1-l-1", "cpu")
 
     def test_checking_incorrect_hidden_layers_nonpositive(self):
         with self.assertRaises(ValueError, msg="Non positive value for number of neurons must raise ValueError"):
-            _ = train.NNModel("16,0,4", "cpu")
+            _ = train.NNModel("16-0-4", "cpu")
 
     def test_checking_incorrect_batch_size_nonpositive(self):
         with self.assertRaises(ValueError, msg="Non positive value for batch size must raise ValueError"):
