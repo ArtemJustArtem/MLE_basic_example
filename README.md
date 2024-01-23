@@ -61,7 +61,7 @@ python3 training/train.py
 This command has some arguments that can be used to tune the model:
 
 ```
---hidden_neurons          # Number of neurons in each hidden layer (integers separated by dashes)
+--hidden_neurons          # Number of neurons in each hidden layer (integers separated by dashes, e.g. 8-4)
 --batch_size              # Batch size used during training
 --epochs                  # Number of epochs used during training
 --verbose_interval        # Interval between each epoch log (where -1 means no epoch log at all)
