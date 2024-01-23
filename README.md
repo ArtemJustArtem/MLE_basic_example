@@ -83,42 +83,24 @@ docker build -f ./training/Dockerfile --build-arg settings_name=settings.json -t
 
 Note, that Docker daemon must be running for this command to work. Also, the building may take about 10 minutes and 7 GB of disk space.
 
-When the image finishes building, you need to make a container by running this command (preferably in the separate terminal since this comand will immediately open terminal on a running container):
+When the image finishes building, you need to make a container by running this command (you can also use additional arguments to tune model):
 
 ```
-docker run -it training_image /bin/bash
+docker run -it training_image /bin/bash python3 training/train.py [--hidden_neurons HIDDEN_NEURONS] [--batch_size BATCH_SIZE] [--epochs EPOCHS] [--verbose_interval VERBOSE_INTERVAL]
 ```
 
-This will open terminal on a running container and the prompt will contain container id that you need to keep in mind:
+This command will start a container and make a model. To save it on a local machine, you first need to find out the container id. You can find the container id using Docker Desktop. Open the Docker Desktop, click on 'Containers', find the container and copy its id.
 
-```
-root@<container_id>:/app#
-```
-
-You can also find the container id using Docker Desktop.
-
-Using the newly opened container terminal run the same command you would if you were to train it locally:
-
-```
-train.py [-h] [--hidden_neurons HIDDEN_NEURONS] [--batch_size BATCH_SIZE] [--epochs EPOCHS] [--verbose_interval VERBOSE_INTERVAL]
-```
-
-One of the log messages will show the name of the file with model:
+After running the command, look for log message that contains model name:
 
 ```
 INFO - Model saved as <name_of_the_model>
 ```
 
-Use this name to copy the file from container (using local machine's terminal, you will also need to create `models` folder if it's not created yet):
+Use this name to copy the file from container (you will also need to create `models` folder if it's not created yet):
 
 ```
 docker cp <container_id>:/app/models/<name_of_the_model> ./models
-```
-
-You can stop running container using:
-
-```
-docker stop <container_id>
 ```
 
 ### Inference process
@@ -130,7 +112,7 @@ Inference process can be done in two ways: on a local machine or using Docker.
 Run this command to infer data using one of the models:
 
 ```
-python3 inference/run.py "<name_of_the_model>"
+python3 inference/run.py <name_of_the_model>
 ```
 
 After running the command, the results will be saved in the `results` folder on a .csv file under a name that will appear on one of log messages that looks like this:
@@ -147,25 +129,13 @@ Firstly, you have to build a Docker image, using this command:
 docker build -f ./inference/Dockerfile --build-arg settings_name=settings.json -t inference_image .
 ```
 
-When the image finishes building, you need to make a container by running this command (preferably in the separate terminal since this comand will immediately open terminal on a running container):
+When the image finishes building, you need to make a container by running this command:
 
 ```
-docker run -it inference_image /bin/bash
+docker run -it inference_image python3 inference/run.py <name_of_the_model>
 ```
 
-This will open terminal on a running container and the prompt will contain container id that you need to keep in mind:
-
-```
-root@<container_id>:/app#
-```
-
-You can also find the container id using Docker Desktop.
-
-Using the newly opened container terminal run the same command you would if you were to train it locally:
-
-```
-python3 inference/run.py "<name_of_the_model>"
-```
+Again, you need to find out the container id which you can do using Docker Desktop.
 
 One of the log messages will show the name of the file:
 
@@ -173,14 +143,18 @@ One of the log messages will show the name of the file:
 INFO - Predictions are saved to <name_of_the_result_file>
 ```
 
-Use this name to copy the file from container (using local machine's terminal, you will also need to create `results` folder if it's not created yet):
+Use this name to copy the file from container (you will also need to create `results` folder if it's not created yet):
 
 ```
 docker cp <container_id>:/app/results/<name_of_the_result_file> ./results
 ```
 
-You can stop running container using:
+## Troubleshooting
+
+Some Linux users might come across a problem when running Dockerfile in training folder:
 
 ```
-docker stop <container_id>
+COPY failed: forbidden path outside the build context: ../data/
 ```
+
+If this problem arises, you can resolve it by editing the dockerfile and subtituting `../data/` for `data/` (you might also need to do that with other paths that include double dots).
