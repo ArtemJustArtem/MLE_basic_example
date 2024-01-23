@@ -86,7 +86,7 @@ Note, that Docker daemon must be running for this command to work. Also, the bui
 When the image finishes building, you need to make a container by running this command (you can also use additional arguments to tune model):
 
 ```
-docker run -it training_image /bin/bash python3 training/train.py [--hidden_neurons HIDDEN_NEURONS] [--batch_size BATCH_SIZE] [--epochs EPOCHS] [--verbose_interval VERBOSE_INTERVAL]
+docker run -it training_image python3 training/train.py [--hidden_neurons HIDDEN_NEURONS] [--batch_size BATCH_SIZE] [--epochs EPOCHS] [--verbose_interval VERBOSE_INTERVAL]
 ```
 
 This command will start a container and make a model. To save it on a local machine, you first need to find out the container id. You can find the container id using Docker Desktop. Open the Docker Desktop, click on 'Containers', find the container and copy its id.
