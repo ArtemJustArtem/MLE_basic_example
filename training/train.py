@@ -42,8 +42,8 @@ Y_TRAIN_PATH = os.path.join(DATA_DIR, conf['train']['y_train_name'])
 # Initializes parser for command line arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("--hidden_neurons", type=str,
-                    help="Number of neurons in each hidden layer (integers separated by comma)", 
-                    default="8,4")
+                    help="Number of neurons in each hidden layer (integers separated by dashes)", 
+                    default="8-4")
 parser.add_argument("--batch_size", type=int,
                     help="Batch size used during training",
                     default=32)
@@ -106,7 +106,7 @@ class NNModel(nn.Module):
         """
         super(NNModel, self).__init__()
         self.device = device
-        neurons = hidden_neurons.split(',')
+        neurons = hidden_neurons.split('-')
         self.hidden_layers = []
         in_features = 4
         for n in neurons:
@@ -229,7 +229,7 @@ if __name__ == "__main__":
     logging.info(f"Using {device} to train model")
     model = NNModel(args.hidden_neurons, device)
     logging.info("Starting training of the model. "
-                 f"Parameters used: Number of neurons in hidden layers: [{args.hidden_neurons}]; "
+                 f"Parameters used: Number of neurons in hidden layers: {args.hidden_neurons}; "
                  f"Batch size: {args.batch_size}; "
                  f"Number of epochs: {args.epochs}")
     trained_model = train_model(model, train_dataset, args.batch_size, args.epochs, args.verbose_interval)
