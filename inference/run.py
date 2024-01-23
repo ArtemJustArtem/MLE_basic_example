@@ -9,8 +9,7 @@ import logging
 import os
 import pickle
 import sys
-from datetime import datetime
-from typing import List
+import time
 
 import numpy as np
 import pandas as pd
@@ -114,11 +113,13 @@ if __name__ == "__main__":
     configure_logging()
     logging.info("Starting the script.")
     data = load_data(INFERENCE_DATA)
-    logging.info("Data successfully loaded")
+    logging.info(f"Data successfully loaded. Size of the dataset: {len(data)}")
     model = load_model(args.model)
     logging.info("Model successfully loaded")
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    logging.info(f"Used {device} to make predictions")
+    device = conf['general']['device']
+    start_time = time.time()
     labels = get_predictions(model, data, device)
+    end_time = time.time()
+    logging.info(f"Model finished making predictions after {end_time - start_time} sec.")
     save_predictions(labels, args.model)
     logging.info("Script finished successfully.")

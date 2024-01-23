@@ -180,6 +180,7 @@ def train_model(model, train_dataset, batch_size, epochs, verbose_interval):
     if verbose_interval <= 0 and verbose_interval != -1:
         logging.error(f"Verbose interval must be positive integer or -1 but got {verbose_interval}. Change the value of --verbose_interval")
         raise ValueError(f"Verbose interval must be positive integer or -1 but got {verbose_interval}.")
+    logging.info(f"Size of the dataset used for training: {len(train_dataset)}")
     train_dataloader = DataLoader(dataset=train_dataset, batch_size=batch_size)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
@@ -225,8 +226,7 @@ if __name__ == "__main__":
         torch.cuda.manual_seed_all(conf['general']['random_state'])
         torch.backends.cudnn.benchmark = False
     train_dataset, test_dataset = data_pipeline(X_TRAIN_PATH, Y_TRAIN_PATH, conf['train']['test_size'], conf['general']['random_state'])
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    logging.info(f"Using {device} to train model")
+    device = conf['general']['device']
     model = NNModel(args.hidden_neurons, device)
     logging.info("Starting training of the model. "
                  f"Parameters used: Number of neurons in hidden layers: {args.hidden_neurons}; "

@@ -5,7 +5,8 @@
         "datetime_format": "%d.%m.%Y_%H.%M",
         "data_dir": "data",
         "models_dir": "models",
-        "results_dir": "results"
+        "results_dir": "results",
+        "device": "cpu"
     },
     "train": {
         "X_train_name": "X_train_data.csv",
